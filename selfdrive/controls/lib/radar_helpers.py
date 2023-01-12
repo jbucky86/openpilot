@@ -3,7 +3,7 @@ from common.kalman.simple_kalman import KF1D
 
 
 # Default lead acceleration decay set to 50% at 1s
-_LEAD_ACCEL_TAU = 1.5
+_LEAD_ACCEL_TAU = 0.3
 
 # radar tracks
 SPEED, ACCEL = 0, 1   # Kalman filter states enum
@@ -130,14 +130,21 @@ class Cluster():
       "aLeadTau": float(self.aLeadTau)
     }
 
-  def get_RadarState_from_vision(self, lead_msg, v_ego):
+  def get_RadarState_from_vision(self, lead_msg, v_ego, vision_v_ego):
+    # Learn vision model velocity error to correct vlead
+    corrected_v_lead = lead_msg.v[0]
+    corrected_a_lead = lead_msg.a[0]
+    if v_ego > 0 and vision_v_ego > 0:
+      vision_velocity_factor = v_ego / vision_v_ego
+      corrected_v_lead = lead_msg.v[0] * vision_velocity_factor
+      corrected_a_lead = lead_msg.a[0] * vision_velocity_factor
     return {
       "dRel": float(lead_msg.x[0] - RADAR_TO_CAMERA),
       "yRel": float(-lead_msg.y[0]),
-      "vRel": float(lead_msg.v[0] - v_ego),
-      "vLead": float(lead_msg.v[0]),
-      "vLeadK": float(lead_msg.v[0]),
-      "aLeadK": float(0),
+      "vRel": float(corrected_v_lead - v_ego),
+      "vLead": float(corrected_v_lead),
+      "vLeadK": float(corrected_v_lead),
+      "aLeadK": float(corrected_a_lead),
       "aLeadTau": _LEAD_ACCEL_TAU,
       "fcw": False,
       "modelProb": float(lead_msg.prob),
