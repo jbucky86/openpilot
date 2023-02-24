@@ -1,3 +1,9 @@
+### Which fork do you want?
+> **If you want "my" fork, read on.** 
+> If you're looking for my SunnyPilot fork, with improved gm controls and auto brake hold, use the following installer URL on your device, but head to the SunnyPilot github for more info.
+**`installer.comma.ai/twilsonco/sunny-test-c3`**
+Please (at least partially) direct your support for the SunnyPilot fork to SunnyPilot directly.
+
 # Table of Contents
 ------
 * [Appreciate my work?](#appreciate-my-work)
@@ -24,7 +30,11 @@
 ### Appreciate My Work?
 ------
 
-**[Buy me a beer/coffee](https://www.patreon.com/twilsonco)***
+Check out the [commit history](https://github.com/twilsonco/openpilot/commits/tw-0.8.9-dev) of `tw-0.8.9-dev` to see the ongoing work you can support.
+
+**[Patreon (recurring contributions)](https://www.patreon.com/twilsonco)**
+
+**[PayPal (one-time contribution)](https://paypal.me/twilsonco)**
 
 # Fork Details
 ------
