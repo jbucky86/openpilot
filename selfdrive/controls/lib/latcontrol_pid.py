@@ -36,7 +36,7 @@ class LatControlPID(LatControl):
       self.pid.reset()
     else:
       # offset does not contribute to resistive torque
-      steer_feedforward = self.get_steer_feedforward(math.degrees(VM.get_steer_from_curvature(-desired_curvature, CS.vEgo, params.roll * 0.5)), CS.vEgo)
+      steer_feedforward = self.get_steer_feedforward(math.degrees(VM.get_steer_from_curvature(-desired_curvature, CS.vEgo, params.roll)), CS.vEgo)
       
       # torque for steer rate. ~0 angle, steer rate ~= steer command.
       steer_rate_actual = CS.steeringRateDeg
