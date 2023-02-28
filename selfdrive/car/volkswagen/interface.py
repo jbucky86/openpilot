@@ -1,13 +1,16 @@
 from cereal import car
+from math import erf
 from panda import Panda
 from common.conversions import Conversions as CV
+from common.numpy_fast import interp
 from selfdrive.car import STD_CARGO_KG, get_safety_config
-from selfdrive.car.interfaces import CarInterfaceBase
+from selfdrive.car.interfaces import CarInterfaceBase, TorqueFromLateralAccelCallbackType
 from selfdrive.car.volkswagen.values import CAR, PQ_CARS, CANBUS, NetworkLocation, TransmissionType, GearShifter
 
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
 
+FRICTION_THRESHOLD_LAT_JERK = 2.0
 
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController, CarState):
@@ -19,6 +22,30 @@ class CarInterface(CarInterfaceBase):
     else:
       self.ext_bus = CANBUS.cam
       self.cp_ext = self.cp_cam
+      
+  @staticmethod
+  def torque_from_lateral_accel_golf_mk7(lateral_accel_value, torque_params, lateral_accel_error, lateral_accel_deadzone, friction_compensation, v_ego, g_lat_accel, lateral_jerk_desired):
+    ANGLE_COEF = 0.19094367
+    ANGLE_COEF2 = 0.14250309
+    SPEED_OFFSET = 0.06307861
+    SIGMOID_COEF_RIGHT = 0.42
+    SIGMOID_COEF_LEFT = 0.42
+    SPEED_COEF = 0.69936411
+    x = ANGLE_COEF * (lateral_accel_value) * (40.23 / (max(0.2,v_ego + SPEED_OFFSET))**SPEED_COEF)
+    sigmoid = erf(x)
+    out = ((SIGMOID_COEF_RIGHT if lateral_accel_value < 0. else SIGMOID_COEF_LEFT) * sigmoid) + ANGLE_COEF2 * lateral_accel_value
+    friction = interp(
+      lateral_jerk_desired,
+      [-FRICTION_THRESHOLD_LAT_JERK, FRICTION_THRESHOLD_LAT_JERK],
+      [-torque_params.friction, torque_params.friction]
+    )
+    return out + friction + g_lat_accel * 0.7
+  
+  def torque_from_lateral_accel(self) -> TorqueFromLateralAccelCallbackType:
+    if self.CP.carFingerprint == CAR.GOLF_MK7:
+      return self.torque_from_lateral_accel_golf_mk7
+    else:
+      return CarInterfaceBase.torque_from_lateral_accel_linear
 
   @staticmethod
   def _get_params(ret, candidate, fingerprint, car_fw, experimental_long):
@@ -115,6 +142,8 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.GOLF_MK7:
       ret.mass = 1397 + STD_CARGO_KG
       ret.wheelbase = 2.62
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+      ret.lateralTuning.torque.kf = 1.0 # adjust kf here; lat_accel_value controls error response.
 
     elif candidate == CAR.JETTA_MK7:
       ret.mass = 1328 + STD_CARGO_KG
@@ -130,7 +159,7 @@ class CarInterface(CarInterfaceBase):
       ret.minEnableSpeed = 20 * CV.KPH_TO_MS  # ACC "basic", no FtS
       ret.minSteerSpeed = 50 * CV.KPH_TO_MS
       ret.steerActuatorDelay = 0.2
-      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+      
 
     elif candidate == CAR.POLO_MK6:
       ret.mass = 1230 + STD_CARGO_KG
