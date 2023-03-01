@@ -321,6 +321,13 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 14.4
       ret.centerToFront = ret.wheelbase * 0.4
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+      
+    elif candidate == CAR.TRAVERSE:
+      ret.mass = 6160. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.wheelbase = 3.06
+      ret.steerRatio = 14.4
+      ret.centerToFront = ret.wheelbase * 0.4
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
     # TODO: start from empirically derived lateral slip stiffness for the civic and scale by
     # mass and CG position, so all cars will have approximately similar dyn behaviors
