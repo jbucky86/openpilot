@@ -610,10 +610,7 @@ class Controls:
     
     if self.sm.updated['lateralPlan'] and len(lat_plan.curvatures) > 0:
       k_mean = mean(lat_plan.curvatures)
-      if abs(k_mean) > abs(self.k_mean.x):
-        self.k_mean.x = k_mean
-      else:
-        self.k_mean.update(k_mean)
+      self.k_mean.update(k_mean)
 
     CC = car.CarControl.new_message()
     CC.enabled = self.enabled
