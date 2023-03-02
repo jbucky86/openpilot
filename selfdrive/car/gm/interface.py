@@ -323,10 +323,14 @@ class CarInterface(CarInterfaceBase):
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
       
     elif candidate == CAR.TRAVERSE:
+      ret.minEnableSpeed = -1.
+      ret.minSteerSpeed = -1 * CV.MPH_TO_MS
       ret.mass = 6160. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 3.06
       ret.steerRatio = 14.4
       ret.centerToFront = ret.wheelbase * 0.4
+      ret.steerActuatorDelay = 0.2
+      tire_stiffness_factor = 1.0
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
     # TODO: start from empirically derived lateral slip stiffness for the civic and scale by
